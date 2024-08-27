@@ -978,7 +978,7 @@ class DDP(pl.LightningModule):
     def setup(self, stage):
 
         self.train_set, self.valid_set = get_train_data(self.conf)
-
+        print(self.train_set)
     def forward(self, x):
 
         return self.diffusion.p_sample_loop(self.model, x.shape)
@@ -1023,7 +1023,6 @@ class DDP(pl.LightningModule):
         return {'val_loss': loss}
 
     def on_validation_epoch_end(self, outputs):
-
         avg_loss         = torch.stack([x['val_loss'] for x in outputs]).mean()
         tensorboard_logs = {'val_loss': avg_loss}
 
@@ -1045,7 +1044,6 @@ class DDP(pl.LightningModule):
                                   num_workers=self.conf.validation.dataloader.num_workers,
                                   pin_memory=True,
                                   drop_last=self.conf.validation.dataloader.drop_last)
-        print("here 1")
         return valid_loader
     
 class obj(object):
