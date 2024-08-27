@@ -1020,7 +1020,7 @@ class DDP(pl.LightningModule):
 
         return {'val_loss': loss}
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
 
         avg_loss         = torch.stack([x['val_loss'] for x in outputs]).mean()
         tensorboard_logs = {'val_loss': avg_loss}
