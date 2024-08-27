@@ -1172,8 +1172,6 @@ if pl.__version__ == '0.8.5':
                                       mode='auto',
                                       period=args.ckpt_freq,
                                       prefix='')
-    
-    
 else:
     checkpoint_callback = ModelCheckpoint(dirpath=os.path.join(args.ckpt_dir, 'ddp_{epoch:02d}-{val_loss:.2f}'),
                                       monitor='val_loss',
@@ -1182,18 +1180,15 @@ else:
                                       save_top_k=-1,
                                       save_weights_only=True,
                                       mode='auto',
-                                      period=args.ckpt_freq)
-#     except:
-#         print('The present library version of pytorch lightning is ',pl.__version__)
-#         print('Please check if library requirements are satisfied')
-    
+                                      every_n_epochs=args.ckpt_freq)
+
 trainer = pl.Trainer(fast_dev_run=False,
                      gpus=args.n_gpu,
                      max_steps=conf.training.n_iter,
                      precision=conf.model.precision,
                      gradient_clip_val=1.,
                      progress_bar_refresh_rate=1,
-                     checkpoint_callback=checkpoint_callback,
+                     callbacks=[checkpoint_callback],
                      check_val_every_n_epoch=10000)
 
 trainer.fit(denoising_diffusion_model)
