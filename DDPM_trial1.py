@@ -16,8 +16,10 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 import easydict
 import pickle
 import pandas as pd
-import habana_frameworks.torch.gpu_migration
+
 import habana_frameworks.torch.core as htcore
+import habana_frameworks.torch.gpu_migration
+from lightning_habana.pytorch.accelerator import HPUAccelerator
 
 import matplotlib
 matplotlib.use('Agg')
@@ -1183,7 +1185,7 @@ else:
                                       every_n_epochs=args.ckpt_freq)
 
 trainer = pl.Trainer(fast_dev_run=False,
-                     accelerator="auto",
+                     accelerator=HPUAccelerator(),
                      max_steps=conf.training.n_iter,
                      precision=conf.model.precision,
                      gradient_clip_val=1.,
