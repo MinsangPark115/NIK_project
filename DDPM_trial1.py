@@ -1185,7 +1185,7 @@ else:
                                       every_n_epochs=args.ckpt_freq)
 
 trainer = pl.Trainer(fast_dev_run=False,
-                     accelerator=HPUAccelerator(),
+                     accelerator="auto",
                      max_steps=conf.training.n_iter,
                      precision=conf.model.precision,
                      gradient_clip_val=1.,
