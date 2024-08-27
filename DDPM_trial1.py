@@ -1045,7 +1045,7 @@ class DDP(pl.LightningModule):
                                   num_workers=self.conf.validation.dataloader.num_workers,
                                   pin_memory=True,
                                   drop_last=self.conf.validation.dataloader.drop_last)
-
+        print("here 1")
         return valid_loader
     
 class obj(object):
