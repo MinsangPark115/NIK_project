@@ -16,6 +16,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 import easydict
 import pickle
 import pandas as pd
+import habana_frameworks.torch.gpu_migration
+import habana_frameworks.torch.core as htcore
 
 import matplotlib
 matplotlib.use('Agg')
