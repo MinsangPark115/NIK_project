@@ -1187,7 +1187,6 @@ trainer = pl.Trainer(fast_dev_run=False,
                      max_steps=conf.training.n_iter,
                      precision=conf.model.precision,
                      gradient_clip_val=1.,
-                     progress_bar_refresh_rate=1,
                      callbacks=[checkpoint_callback],
                      check_val_every_n_epoch=10000)
 
