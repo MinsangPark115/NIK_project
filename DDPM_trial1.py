@@ -338,7 +338,7 @@ class GaussianDiffusion(nn.Module):
             img (tensor) : x_0에 해당하는 image tensor 
         """
 
-        device = 'cuda' if next(model.parameters()).is_cuda else 'cpu'
+        device = 'hpu' # if next(model.parameters()).is_cuda else 'cpu'
         img    = noise_fn(shape).to(device)
 
         for i in reversed(range(self.num_timesteps)):
@@ -1027,7 +1027,7 @@ class DDP(pl.LightningModule):
         tensorboard_logs = {'val_loss': avg_loss}
 
         shape  = (16, 3, self.conf.dataset.resolution, self.conf.dataset.resolution)
-        sample = progressive_samples_fn(self.ema, self.diffusion, shape, device='cuda' if self.on_gpu else 'cpu')
+        sample = progressive_samples_fn(self.ema, self.diffusion, shape, device='hpu' if self.on_gpu else 'cpu')
 
         grid = make_grid(sample['samples'], nrow=4)
         self.logger.experiment.add_image(f'generated_images', grid, self.current_epoch)
