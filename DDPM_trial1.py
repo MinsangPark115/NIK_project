@@ -18,12 +18,9 @@ import easydict
 import pickle
 import pandas as pd
 
-import habana_frameworks.torch.core as htcore
-import habana_frameworks.torch.distributed.hccl
-torch.distributed.init_process_group(backend="hccl")
-
 import habana_frameworks.torch.gpu_migration
-from lightning_habana.pytorch.accelerator import HPUAccelerator
+import habana_frameworks.torch.core as htcore
+
 
 import matplotlib
 matplotlib.use('Agg')
