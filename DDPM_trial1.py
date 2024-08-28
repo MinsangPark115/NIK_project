@@ -5,6 +5,7 @@ import math
 import numpy as np
 import torch
 from torch import nn, optim
+import torch.distributed
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 from torchvision.utils import make_grid
@@ -18,6 +19,9 @@ import pickle
 import pandas as pd
 
 import habana_frameworks.torch.core as htcore
+import habana_frameworks.torch.distributed.hccl
+torch.distributed.init_process_group(backend="hccl")
+
 import habana_frameworks.torch.gpu_migration
 from lightning_habana.pytorch.accelerator import HPUAccelerator
 
