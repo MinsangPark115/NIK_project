@@ -1,0 +1,47 @@
+conf: !!python/object:__main__.obj
+  dataset: !!python/object:__main__.obj
+    name: cifar10
+    path: data/
+    resolution: 32
+  evaluate: !!python/object:__main__.obj
+    log_every: 100
+    save_every: 500
+    valid_every: 500
+    wandb: false
+  model: !!python/object:__main__.obj
+    attn_strides:
+    - 16
+    channel: 128
+    channel_multiplier:
+    - 1
+    - 2
+    - 2
+    - 2
+    device: cuda
+    dropout: 0.1
+    fold: 1
+    in_channel: 3
+    loss_type: mse
+    mean_type: eps
+    n_res_blocks: 2
+    precision: 32
+    schedule: !!python/object:__main__.obj
+      beta_end: 0.02
+      beta_start: 0.0001
+      n_timestep: 1000
+      type: linear
+    var_type: fixedlarge
+  training: !!python/object:__main__.obj
+    dataloader: !!python/object:__main__.obj
+      batch_size: 128
+      drop_last: true
+      num_workers: 4
+    n_iter: 500000
+    optimizer: !!python/object:__main__.obj
+      lr: 0.0002
+      type: adam
+  validation: !!python/object:__main__.obj
+    dataloader: !!python/object:__main__.obj
+      batch_size: 100
+      drop_last: false
+      num_workers: 4
