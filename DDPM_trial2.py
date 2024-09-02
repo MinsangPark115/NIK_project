@@ -7,7 +7,7 @@ import torch
 from torch import nn, optim
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset, TensorDataset
-from torchvision.utils import make_grid
+from torchvision.utils import make_grid, save_image
 import torchvision.transforms as T
 import torchvision.datasets
 from torch.utils.data import Subset
