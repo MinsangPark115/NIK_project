@@ -941,6 +941,9 @@ def get_train_data(conf):
 
     return train_set, valid_set
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
+
 class DDP:
     def __init__(self, conf):
         self.conf = conf
@@ -978,6 +981,8 @@ class DDP:
             model_var_type=self.conf.model.var_type,
             loss_type=self.conf.model.loss_type,
         )
+        self.model.to(device)
+        self.ema.to(device)
 
     def setup(self):
         # 데이터셋 로드
@@ -995,6 +1000,7 @@ class DDP:
 
     def training_step(self, batch):
         img, _ = batch
+        img=img.to(device)
         time = (torch.rand(img.shape[0]) * 1000).type(torch.int64).to(img.device)
         loss = self.diffusion.training_losses(self.model, img, time).mean()
 
@@ -1004,6 +1010,7 @@ class DDP:
 
     def validation_step(self, batch):
         img, _ = batch
+        img = img.to(device)
         time = (torch.rand(img.shape[0]) * 1000).type(torch.int64).to(img.device)
         loss = self.diffusion.training_losses(self.ema, img, time).mean()
 
