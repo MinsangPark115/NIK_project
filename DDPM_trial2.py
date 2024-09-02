@@ -1085,7 +1085,7 @@ class DDP:
         shape = (16, 3, self.conf.dataset.resolution, self.conf.dataset.resolution)
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         sample = progressive_samples_fn(self.ema, self.diffusion, shape, device=device)
-
+        print(sample['samples'].shape)
         # 샘플 이미지 저장
         grid = make_grid(sample['samples'], nrow=4)
         save_image(grid, os.path.join(self.conf.sample_dir, f'generated_images_{epoch}.png'))
