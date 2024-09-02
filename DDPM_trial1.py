@@ -12,7 +12,8 @@ from torchvision.utils import make_grid
 import torchvision.transforms as T
 import torchvision.datasets
 from torch.utils.data import Subset
-import pytorch_lightning as pl
+import pytorch_lightning as pl_prev
+import lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 import easydict
 import pickle
