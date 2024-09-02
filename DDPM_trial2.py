@@ -1068,10 +1068,12 @@ class DDP:
 
             # 샘플 생성 및 로그 기록
             if epoch % self.conf.training.sample_freq == 0:
+                print("sampling...")
                 self.sample_images(epoch)
 
             # 모델 저장
             if epoch % self.conf.training.ckpt_freq == 0:
+                print("saving...")
                 self.save_checkpoint(epoch, avg_val_loss)
 
     def save_checkpoint(self, epoch, val_loss):
