@@ -1035,7 +1035,9 @@ class DDP:
         optimizer = self.configure_optimizers()
         train_loader = self.train_dataloader()
         val_loader = self.val_dataloader()
-        print(self.model.device)
+        device = next(self.model.parameters()).device
+        print(f"Model is running on: {device}")
+
         for epoch in range(self.conf.training.epochs):
             self.model.train()
             for batch in tqdm(train_loader, desc="Training", leave=False):
