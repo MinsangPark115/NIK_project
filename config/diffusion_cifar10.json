@@ -33,7 +33,7 @@
         "lr": 2e-4
     },
     "dataloader": {
-        "batch_size": 1024,
+        "batch_size": 128,
         "num_workers": 4,
         "drop_last": true
     },
