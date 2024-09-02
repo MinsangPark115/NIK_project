@@ -1045,7 +1045,7 @@ class DDP:
         device = next(self.model.parameters()).device
         print(f"Model is running on: {device}")
 
-        for epoch in range(self.conf.training.epochs):
+        for epoch in tqdm(range(self.conf.training.epochs)):
             self.model.train()
             for batch in tqdm(train_loader, desc="Training", leave=False):
                 optimizer.zero_grad()
