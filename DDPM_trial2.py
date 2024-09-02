@@ -26,7 +26,12 @@ import matplotlib.pyplot as plt
 import habana_frameworks.torch.gpu_migration
 import habana_frameworks.torch.core as htcore
 
-
+if os.getenv('DEBUG', '0') == '1':
+    os.environ['PT_HPU_LAZY_MODE'] = '1'
+    os.environ['LOG_LEVEL_PT_FALLBACK'] = '1'
+    os.environ['PT_HPU_ENABLE_REFINE_DYNAMIC_SHAPES'] = '1'
+    os.environ['LOG_LEVEL_ALL'] = '3'
+    os.environ['ENABLE_CONSOLE'] = 'true'
 
 print(torch.__version__) # 1.9.0+cu1x1 ??
 # print(pl.__version__) # 0.8.5 ??

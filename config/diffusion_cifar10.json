@@ -54,6 +54,6 @@
     "save_every": 500,
     "valid_every": 500
 },
-"ckpt_dir" : "/ckpts",
-"sample_dir":"/sample"
+"ckpt_dir" : "./ckpts",
+"sample_dir":"./sample"
 }
