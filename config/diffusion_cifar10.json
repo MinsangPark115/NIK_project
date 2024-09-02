@@ -36,7 +36,9 @@
         "batch_size": 128,
         "num_workers": 4,
         "drop_last": true
-    }
+    },
+    "sample_freq":1,
+    "ckpt_freq":1
 }
 ,
 "validation": {
@@ -51,5 +53,7 @@
     "log_every": 100,
     "save_every": 500,
     "valid_every": 500
-}
+},
+"ckpt_dir" : "/ckpts",
+"sample_dir":"/sample"
 }

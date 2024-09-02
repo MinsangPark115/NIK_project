@@ -1035,7 +1035,7 @@ class DDP:
         optimizer = self.configure_optimizers()
         train_loader = self.train_dataloader()
         val_loader = self.val_dataloader()
-
+        print(self.model.device)
         for epoch in range(self.conf.training.epochs):
             self.model.train()
             for batch in tqdm(train_loader, desc="Training", leave=False):
@@ -1191,9 +1191,6 @@ args = easydict.EasyDict({
     })
 
     
-path_to_config = args.config
-with open(path_to_config, 'r') as f:
-    conf = json.load(f)
 
 path_to_config = args.config
 with open(path_to_config, 'r') as f:
@@ -1201,5 +1198,9 @@ with open(path_to_config, 'r') as f:
 
 conf = obj(conf)
 denoising_diffusion_model = DDP(conf)
+
+
+
+
 denoising_diffusion_model.setup()
 denoising_diffusion_model.train()
