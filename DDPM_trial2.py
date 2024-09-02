@@ -1102,7 +1102,7 @@ class DDP:
 
         # save_image(grid, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
 
-    def save_image_pil(tensor, file_path):
+    def save_image_pil(tensor, file_path, file_name):
         tensor = tensor.clone().cpu()
         if tensor.min() < 0 or tensor.max() > 1:
             tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
@@ -1112,7 +1112,7 @@ class DDP:
         np_image = tensor.numpy().transpose(1, 2, 0)
         
         image = Image.fromarray(np_image)
-        image.save(file_path)
+        image.save(f"{file_path}/{file_name}")
 
 class obj(object):
     """
