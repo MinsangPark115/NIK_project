@@ -376,7 +376,7 @@ class GaussianDiffusion(nn.Module):
         imglist = [clip(img)]
         
         predx0_list = []
-        for i in reversed(range(self.num_timesteps)):
+        for i in tqdm(reversed(range(self.num_timesteps))):
 
             # Sample p(x_{t-1} | x_t) as usual
             img, pred_x0 = self.p_sample(model=model,
