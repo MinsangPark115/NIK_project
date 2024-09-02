@@ -1104,14 +1104,20 @@ class DDP:
 
 def save_image_pil(tensor, file_path):
     tensor = tensor.clone().cpu()
+    print("here1")
     if tensor.min() < 0 or tensor.max() > 1:
         tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
+        print("here2")
+    
     tensor = tensor * 255
+    print("here3")
     tensor = tensor.byte()
-
+    print("here4")
     np_image = tensor.numpy().transpose(1, 2, 0)
+    print("here5")
     
     image = Image.fromarray(np_image)
+    print("here6")
     image.save(file_path)
 
 class obj(object):
