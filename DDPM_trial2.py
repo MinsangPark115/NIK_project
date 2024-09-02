@@ -1103,7 +1103,7 @@ class DDP:
         # save_image(grid, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
 
 def save_image_pil(tensor, file_path):
-    tensor = tensor.clone().cpu()
+    tensor = tensor.clone().to("cpu")
     print("here1")
     if tensor.min() < 0 or tensor.max() > 1:
         tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
