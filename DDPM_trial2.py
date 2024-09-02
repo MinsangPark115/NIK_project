@@ -1092,27 +1092,27 @@ class DDP:
         print(grid.shape)
         print(self.conf.sample_dir)
         
-        self.save_image_pil(grid, os.path.join(self.conf.sample_dir, f'generated_images_{epoch}.png'))
+        save_image_pil(grid, os.path.join(self.conf.sample_dir, f'generated_images_{epoch}.png'))
 
         # save_image(grid, os.path.join(self.conf.sample_dir, f'generated_images_{epoch}.png'))
         print(self.sample['progressive_samples'].reshape(-1, 3, self.conf.dataset.resolution, self.conf.dataset.resolution).shape)
         grid = make_grid(sample['progressive_samples'].reshape(-1, 3, self.conf.dataset.resolution, self.conf.dataset.resolution), nrow=20)
         
-        self.save_image_pil(grid_progressive, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
+        save_image_pil(grid_progressive, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
 
         # save_image(grid, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
 
-    def save_image_pil(tensor, file_path, file_name):
-        tensor = tensor.clone().cpu()
-        if tensor.min() < 0 or tensor.max() > 1:
-            tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
-        tensor = tensor * 255
-        tensor = tensor.byte()
+def save_image_pil(tensor, file_path, file_name):
+    tensor = tensor.clone().cpu()
+    if tensor.min() < 0 or tensor.max() > 1:
+        tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
+    tensor = tensor * 255
+    tensor = tensor.byte()
 
-        np_image = tensor.numpy().transpose(1, 2, 0)
-        
-        image = Image.fromarray(np_image)
-        image.save(f"{file_path}/{file_name}")
+    np_image = tensor.numpy().transpose(1, 2, 0)
+    
+    image = Image.fromarray(np_image)
+    image.save(f"{file_path}/{file_name}")
 
 class obj(object):
     """
