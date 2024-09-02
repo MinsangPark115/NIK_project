@@ -1073,9 +1073,9 @@ class DDP:
             print(f'Epoch {epoch}, Validation Loss: {avg_val_loss}')
 
             # 샘플 생성 및 로그 기록
-            if epoch % self.conf.training.sample_freq == 0:
-                print("sampling...")
-                self.sample_images(epoch)
+            # if epoch % self.conf.training.sample_freq == 0:
+            #     print("sampling...")
+            #     self.sample_images(epoch)
 
             # 모델 저장
             if epoch % self.conf.training.ckpt_freq == 0:
