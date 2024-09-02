@@ -1088,6 +1088,7 @@ class DDP:
         print(sample['samples'].shape)
         # 샘플 이미지 저장
         grid = make_grid(sample['samples'], nrow=4)
+        print(grid.shape)
         save_image(grid, os.path.join(self.conf.sample_dir, f'generated_images_{epoch}.png'))
 
         grid = make_grid(sample['progressive_samples'].reshape(-1, 3, self.conf.dataset.resolution, self.conf.dataset.resolution), nrow=20)
