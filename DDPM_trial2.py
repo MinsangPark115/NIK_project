@@ -26,12 +26,12 @@ import matplotlib.pyplot as plt
 import habana_frameworks.torch.gpu_migration
 import habana_frameworks.torch.core as htcore
 
-if os.getenv('DEBUG', '0') == '1':
-    os.environ['PT_HPU_LAZY_MODE'] = '1'
-    os.environ['LOG_LEVEL_PT_FALLBACK'] = '1'
-    os.environ['PT_HPU_ENABLE_REFINE_DYNAMIC_SHAPES'] = '1'
-    os.environ['LOG_LEVEL_ALL'] = '3'
-    os.environ['ENABLE_CONSOLE'] = 'true'
+# if os.getenv('DEBUG', '0') == '1':
+os.environ['PT_HPU_LAZY_MODE'] = '1'
+os.environ['LOG_LEVEL_PT_FALLBACK'] = '1'
+os.environ['PT_HPU_ENABLE_REFINE_DYNAMIC_SHAPES'] = '1'
+os.environ['LOG_LEVEL_ALL'] = '3'
+os.environ['ENABLE_CONSOLE'] = 'true'
 
 print(torch.__version__) # 1.9.0+cu1x1 ??
 # print(pl.__version__) # 0.8.5 ??
@@ -1073,9 +1073,9 @@ class DDP:
             print(f'Epoch {epoch}, Validation Loss: {avg_val_loss}')
 
             # 샘플 생성 및 로그 기록
-            # if epoch % self.conf.training.sample_freq == 0:
-            #     print("sampling...")
-            #     self.sample_images(epoch)
+            if epoch % self.conf.training.sample_freq == 0:
+                print("sampling...")
+                self.sample_images(epoch)
 
             # 모델 저장
             if epoch % self.conf.training.ckpt_freq == 0:
