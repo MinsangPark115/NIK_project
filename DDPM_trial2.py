@@ -20,8 +20,12 @@ import pickle
 import pandas as pd
 
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+import habana_frameworks.torch.gpu_migration
+import habana_frameworks.torch.core as htcore
+
+
 
 print(torch.__version__) # 1.9.0+cu1x1 ??
 # print(pl.__version__) # 0.8.5 ??
@@ -1038,7 +1042,9 @@ class DDP:
                 optimizer.zero_grad()
                 loss = self.training_step(batch)
                 loss.backward()
+                htcore.mark_step()
                 optimizer.step()
+                htcore.mark_step()
 
             # 검증 단계
             self.model.eval()
