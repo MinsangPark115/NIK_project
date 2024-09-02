@@ -11,9 +11,10 @@ from torchvision.utils import make_grid
 import torchvision.transforms as T
 import torchvision.datasets
 from torch.utils.data import Subset
-import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.strategies import DDPStrategy
+from tqdm import tqdm
+# import pytorch_lightning as pl
+# from pytorch_lightning.callbacks import ModelCheckpoint
+# from pytorch_lightning.strategies import DDPStrategy
 import easydict
 import pickle
 import pandas as pd
@@ -23,7 +24,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 print(torch.__version__) # 1.9.0+cu1x1 ??
-print(pl.__version__) # 0.8.5 ??
+# print(pl.__version__) # 0.8.5 ??
 
 def make_beta_schedule(schedule, start, end, n_timestep):
      
@@ -936,121 +937,145 @@ def get_train_data(conf):
 
     return train_set, valid_set
 
-class DDP(pl.LightningModule):
+class DDP:
     def __init__(self, conf):
-        super().__init__()
+        self.conf = conf
 
-        self.conf  = conf
-        self.save_hyperparameters()
+        # 모델 초기화
+        self.model = UNet(
+            self.conf.model.in_channel,
+            self.conf.model.channel,
+            channel_multiplier=self.conf.model.channel_multiplier,
+            n_res_blocks=self.conf.model.n_res_blocks,
+            attn_strides=self.conf.model.attn_strides,
+            dropout=self.conf.model.dropout,
+            fold=self.conf.model.fold,
+        )
+        self.ema = UNet(
+            self.conf.model.in_channel,
+            self.conf.model.channel,
+            channel_multiplier=self.conf.model.channel_multiplier,
+            n_res_blocks=self.conf.model.n_res_blocks,
+            attn_strides=self.conf.model.attn_strides,
+            dropout=self.conf.model.dropout,
+            fold=self.conf.model.fold,
+        )
 
-        self.model = UNet(self.conf.model.in_channel,
-                          self.conf.model.channel,
-                          channel_multiplier=self.conf.model.channel_multiplier,
-                          n_res_blocks=self.conf.model.n_res_blocks,
-                          attn_strides=self.conf.model.attn_strides,
-                          dropout=self.conf.model.dropout,
-                          fold=self.conf.model.fold,
-                          )
-        self.ema   = UNet(self.conf.model.in_channel,
-                          self.conf.model.channel,
-                          channel_multiplier=self.conf.model.channel_multiplier,
-                          n_res_blocks=self.conf.model.n_res_blocks,
-                          attn_strides=self.conf.model.attn_strides,
-                          dropout=self.conf.model.dropout,
-                          fold=self.conf.model.fold,
-                          )
+        self.betas = make_beta_schedule(
+            schedule=self.conf.model.schedule.type,
+            start=self.conf.model.schedule.beta_start,
+            end=self.conf.model.schedule.beta_end,
+            n_timestep=self.conf.model.schedule.n_timestep,
+        )
 
-        self.betas = make_beta_schedule(schedule=self.conf.model.schedule.type,
-                                        start=self.conf.model.schedule.beta_start,
-                                        end=self.conf.model.schedule.beta_end,
-                                        n_timestep=self.conf.model.schedule.n_timestep)
+        self.diffusion = GaussianDiffusion(
+            betas=self.betas,
+            model_mean_type=self.conf.model.mean_type,
+            model_var_type=self.conf.model.var_type,
+            loss_type=self.conf.model.loss_type,
+        )
 
-        self.diffusion = GaussianDiffusion(betas=self.betas,
-                                           model_mean_type=self.conf.model.mean_type,
-                                           model_var_type=self.conf.model.var_type,
-                                           loss_type=self.conf.model.loss_type)
-        self.validation_step_outputs = []
-
-
-
-    def setup(self, stage):
-
+    def setup(self):
+        # 데이터셋 로드
         self.train_set, self.valid_set = get_train_data(self.conf)
 
     def forward(self, x):
-
         return self.diffusion.p_sample_loop(self.model, x.shape)
 
     def configure_optimizers(self):
-
         if self.conf.training.optimizer.type == 'adam':
             optimizer = optim.Adam(self.model.parameters(), lr=self.conf.training.optimizer.lr)
         else:
-            raise NotImplementedError
-
+            raise NotImplementedError("지원되지 않는 옵티마이저입니다.")
         return optimizer
 
-    def training_step(self, batch, batch_nb):
-
+    def training_step(self, batch):
         img, _ = batch
-        time   = (torch.rand(img.shape[0]) * 1000).type(torch.int64).to(img.device)
-        loss   = self.diffusion.training_losses(self.model, img, time).mean()
+        time = (torch.rand(img.shape[0]) * 1000).type(torch.int64).to(img.device)
+        loss = self.diffusion.training_losses(self.model, img, time).mean()
 
-        accumulate(self.ema, self.model.module if isinstance(self.model, nn.DataParallel) else self.model, 0.9999)
+        accumulate(self.ema, self.model, 0.9999)
 
-        tensorboard_logs = {'train_loss': loss}
+        return loss
 
-        return {'loss': loss, 'log': tensorboard_logs}
+    def validation_step(self, batch):
+        img, _ = batch
+        time = (torch.rand(img.shape[0]) * 1000).type(torch.int64).to(img.device)
+        loss = self.diffusion.training_losses(self.ema, img, time).mean()
+
+        return loss
 
     def train_dataloader(self):
-
-        train_loader = DataLoader(self.train_set,
-                                  batch_size=self.conf.training.dataloader.batch_size,
-                                  shuffle=True,
-                                  num_workers=self.conf.training.dataloader.num_workers,
-                                  pin_memory=True,
-                                  drop_last=self.conf.training.dataloader.drop_last)
+        train_loader = DataLoader(
+            self.train_set,
+            batch_size=self.conf.training.dataloader.batch_size,
+            shuffle=True,
+            num_workers=self.conf.training.dataloader.num_workers,
+            pin_memory=True,
+            drop_last=self.conf.training.dataloader.drop_last,
+        )
         return train_loader
 
-    def validation_step(self, batch, batch_nb):
-
-        img, _ = batch
-        time   = (torch.rand(img.shape[0]) * 1000).type(torch.int64).to(img.device)
-        loss   = self.diffusion.training_losses(self.ema, img, time).mean()
-        self.validation_step_outputs.append(loss)
-
-        return {'val_loss': loss}
-
-    def on_validation_epoch_end(self):
-
-        avg_loss = torch.stack(self.validation_step_outputs).mean()
-        self.log("validation_epoch_average", avg_loss)
-        self.validation_step_outputs.clear()
-
-        # avg_loss         = torch.stack([x['val_loss'] for x in outputs]).mean()
-        tensorboard_logs = {'val_loss': avg_loss}
-
-        shape  = (16, 3, self.conf.dataset.resolution, self.conf.dataset.resolution)
-        # sample = progressive_samples_fn(self.ema, self.diffusion, shape, device='cuda' if self.on_gpu else 'cpu')
-
-        # grid = make_grid(sample['samples'], nrow=4)
-        # self.logger.experiment.add_image(f'generated_images', grid, self.current_epoch)
-
-        # grid = make_grid(sample['progressive_samples'].reshape(-1, 3, self.conf.dataset.resolution, self.conf.dataset.resolution), nrow=20)
-        # self.logger.experiment.add_image(f'progressive_generated_images', grid, self.current_epoch)
-        
-        return {'val_loss': avg_loss, 'log': tensorboard_logs}
-
     def val_dataloader(self):
-        valid_loader = DataLoader(self.valid_set,
-                                  batch_size=self.conf.validation.dataloader.batch_size,
-                                  shuffle=False,
-                                  num_workers=self.conf.validation.dataloader.num_workers,
-                                  pin_memory=True,
-                                  drop_last=self.conf.validation.dataloader.drop_last)
-
+        valid_loader = DataLoader(
+            self.valid_set,
+            batch_size=self.conf.validation.dataloader.batch_size,
+            shuffle=False,
+            num_workers=self.conf.validation.dataloader.num_workers,
+            pin_memory=True,
+            drop_last=self.conf.validation.dataloader.drop_last,
+        )
         return valid_loader
-    
+
+    def train(self):
+        optimizer = self.configure_optimizers()
+        train_loader = self.train_dataloader()
+        val_loader = self.val_dataloader()
+
+        for epoch in range(self.conf.training.epochs):
+            self.model.train()
+            for batch in tqdm(train_loader, desc="Training", leave=False):
+                optimizer.zero_grad()
+                loss = self.training_step(batch)
+                loss.backward()
+                optimizer.step()
+
+            # 검증 단계
+            self.model.eval()
+            with torch.no_grad():
+                val_losses = []
+                for batch in val_loader:
+                    loss = self.validation_step(batch)
+                    val_losses.append(loss.item())
+
+            avg_val_loss = sum(val_losses) / len(val_losses)
+            print(f'Epoch {epoch}, Validation Loss: {avg_val_loss}')
+
+            # 샘플 생성 및 로그 기록
+            if epoch % self.conf.training.sample_freq == 0:
+                self.sample_images(epoch)
+
+            # 모델 저장
+            if epoch % self.conf.training.ckpt_freq == 0:
+                self.save_checkpoint(epoch, avg_val_loss)
+
+    def save_checkpoint(self, epoch, val_loss):
+        checkpoint_dir = os.path.join(self.conf.ckpt_dir, f'ddp_{epoch:02d}-{val_loss:.2f}.pt')
+        torch.save({'epoch': epoch, 'model_state_dict': self.model.state_dict()}, checkpoint_dir)
+        print(f'Checkpoint saved at {checkpoint_dir}')
+
+    def sample_images(self, epoch):
+        shape = (16, 3, self.conf.dataset.resolution, self.conf.dataset.resolution)
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        sample = progressive_samples_fn(self.ema, self.diffusion, shape, device=device)
+
+        # 샘플 이미지 저장
+        grid = make_grid(sample['samples'], nrow=4)
+        save_image(grid, os.path.join(self.conf.sample_dir, f'generated_images_{epoch}.png'))
+
+        grid = make_grid(sample['progressive_samples'].reshape(-1, 3, self.conf.dataset.resolution, self.conf.dataset.resolution), nrow=20)
+        save_image(grid, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
+
 class obj(object):
     """
     config가 json 형식으로 되어있습니다.
@@ -1164,41 +1189,11 @@ path_to_config = args.config
 with open(path_to_config, 'r') as f:
     conf = json.load(f)
 
+path_to_config = args.config
+with open(path_to_config, 'r') as f:
+    conf = json.load(f)
+
 conf = obj(conf)
 denoising_diffusion_model = DDP(conf)
-
-if pl.__version__ == '0.8.5':
-    checkpoint_callback = ModelCheckpoint(filepath=os.path.join(args.ckpt_dir, 'ddp_{epoch:02d}-{val_loss:.2f}'),
-                                      monitor='val_loss',
-                                      verbose=False,
-                                      save_last=True,
-                                      save_top_k=-1,
-                                      save_weights_only=True,
-                                      mode='auto',
-                                      period=args.ckpt_freq,
-                                      prefix='')
-    
-    
-else:
-    checkpoint_callback = ModelCheckpoint(dirpath=os.path.join(args.ckpt_dir, 'ddp_{epoch:02d}-{val_loss:.2f}'),
-                                      monitor='val_loss',
-                                      verbose=False,
-                                      save_last=True,
-                                      save_top_k=-1,
-                                      save_weights_only=True,
-                                      mode='min',
-                                      )
-#     except:
-#         print('The present library version of pytorch lightning is ',pl.__version__)
-#         print('Please check if library requirements are satisfied')
-    
-trainer = pl.Trainer(strategy=DDPStrategy(find_unused_parameters=True),
-                     fast_dev_run=False,
-                     accelerator="auto",
-                     max_steps=conf.training.n_iter,
-                     precision=conf.model.precision,
-                     gradient_clip_val=1.,
-                     callbacks=[checkpoint_callback],
-                     check_val_every_n_epoch=10000)
-
-trainer.fit(denoising_diffusion_model)
+denoising_diffusion_model.setup()
+denoising_diffusion_model.train()
