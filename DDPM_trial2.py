@@ -12,6 +12,7 @@ import torchvision.transforms as T
 import torchvision.datasets
 from torch.utils.data import Subset
 from tqdm import tqdm
+from PIL import Image
 # import pytorch_lightning as pl
 # from pytorch_lightning.callbacks import ModelCheckpoint
 # from pytorch_lightning.strategies import DDPStrategy
@@ -1089,10 +1090,29 @@ class DDP:
         # 샘플 이미지 저장
         grid = make_grid(sample['samples'], nrow=4)
         print(grid.shape)
-        save_image(grid, os.path.join(self.conf.sample_dir, f'generated_images_{epoch}.png'))
+        print(self.conf.sample_dir)
+        
+        self.save_image_pil(grid, os.path.join(self.conf.sample_dir, f'generated_images_{epoch}.png'))
 
+        # save_image(grid, os.path.join(self.conf.sample_dir, f'generated_images_{epoch}.png'))
+        print(self.sample['progressive_samples'].reshape(-1, 3, self.conf.dataset.resolution, self.conf.dataset.resolution).shape)
         grid = make_grid(sample['progressive_samples'].reshape(-1, 3, self.conf.dataset.resolution, self.conf.dataset.resolution), nrow=20)
-        save_image(grid, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
+        
+        self.save_image_pil(grid_progressive, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
+
+        # save_image(grid, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
+
+    def save_image_pil(tensor, file_path):
+        tensor = tensor.clone().cpu()
+        if tensor.min() < 0 or tensor.max() > 1:
+            tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
+        tensor = tensor * 255
+        tensor = tensor.byte()
+
+        np_image = tensor.numpy().transpose(1, 2, 0)
+        
+        image = Image.fromarray(np_image)
+        image.save(file_path)
 
 class obj(object):
     """
