@@ -395,7 +395,7 @@ class GaussianDiffusion(nn.Module):
             # Keep track of prediction of x0
             insert_mask = np.floor(i // include_x0_pred_freq) == torch.arange(num_recorded_x0_pred,
                                                                               dtype=torch.int32,
-                                                                              device=device)
+                                                                              device="cuda")
 
             insert_mask = insert_mask.to(torch.float32).view(1, num_recorded_x0_pred, *([1] * len(shape[1:])))
             x0_preds_   = insert_mask * pred_x0[:, None, ...] + (1. - insert_mask) * x0_preds_
