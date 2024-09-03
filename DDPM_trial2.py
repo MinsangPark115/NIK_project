@@ -1108,7 +1108,7 @@ class DDP:
         # save_image(grid, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
 
 def save_image_pil(tensor_input, file_path):
-    tensor = tensor_input.clone()
+    tensor = tensor_input.clone()*255
     print("here1")
     # tensor = tensor.to("cpu")
     print("here1.5")
