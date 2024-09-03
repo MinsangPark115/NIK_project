@@ -1110,7 +1110,7 @@ class DDP:
 def save_image_pil(tensor, file_path):
     tensor = tensor.clone()
     print("here1")
-    # tensor = tensor.to("cpu")
+    tensor = tensor.to("cpu")
     print("here1.5")
     if tensor.min() < 0 or tensor.max() > 1:
         tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
