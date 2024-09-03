@@ -1112,12 +1112,7 @@ def save_image_pil(tensor_input, file_path):
     print("here1")
     # tensor = tensor.to("cpu")
     print("here1.5")
-    if tensor.min() < 0 or tensor.max() > 1:
-        tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
-        print("here2")
     
-    tensor = tensor * 255
-    print("here3")
     tensor = tensor.byte()
     print("here4")
     np_image = tensor.numpy().transpose(1, 2, 0)
