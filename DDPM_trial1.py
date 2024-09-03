@@ -12,9 +12,9 @@ from torchvision.utils import make_grid
 import torchvision.transforms as T
 import torchvision.datasets
 from torch.utils.data import Subset
-import pytorch_lightning as pl_prev
-import lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
+# import pytorch_lightning as pl_prev
+# import lightning as pl
+# from pytorch_lightning.callbacks import ModelCheckpoint
 import easydict
 import pickle
 import pandas as pd
@@ -28,7 +28,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 print(torch.__version__) # 1.9.0+cu1x1 ??
-print(pl.__version__) # 0.8.5 ??
+# print(pl.__version__) # 0.8.5 ??
 
 def make_beta_schedule(schedule, start, end, n_timestep):
      
