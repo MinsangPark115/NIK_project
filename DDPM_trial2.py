@@ -1115,7 +1115,7 @@ def save_image_pil(tensor_input, file_path):
     
     tensor = tensor.byte()
     print("here4")
-    np_image = tensor.numpy().transpose(1, 2, 0)
+    np_image = tensor.cpu().numpy().transpose(1, 2, 0)
     print("here5")
     
     image = Image.fromarray(np_image)
