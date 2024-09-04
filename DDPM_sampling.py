@@ -7,6 +7,7 @@ os.environ['LOG_LEVEL_PT_FALLBACK'] = '1'
 os.environ['PT_HPU_ENABLE_REFINE_DYNAMIC_SHAPES'] = '1'
 os.environ['LOG_LEVEL_ALL'] = '3'
 os.environ['ENABLE_CONSOLE'] = 'true'
+os.environ['GPU_MIGRATION_LOG_LEVEL'] = '3'
 
 import json
 import argparse
