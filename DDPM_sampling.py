@@ -1283,4 +1283,5 @@ denoising_diffusion_model = DDP(conf)
 
 
 denoising_diffusion_model.setup()
-denoising_diffusion_model.sampling()
+ckptdir = "./ckpts/ddp.pt"
+denoising_diffusion_model.sampling("ckptdir")
