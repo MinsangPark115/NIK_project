@@ -1,4 +1,13 @@
+
 import os
+
+# if os.getenv('DEBUG', '0') == '1':
+# os.environ['PT_HPU_LAZY_MODE'] = '1'
+os.environ['LOG_LEVEL_PT_FALLBACK'] = '1'
+os.environ['PT_HPU_ENABLE_REFINE_DYNAMIC_SHAPES'] = '1'
+os.environ['LOG_LEVEL_ALL'] = '3'
+os.environ['ENABLE_CONSOLE'] = 'true'
+
 import json
 import argparse
 import math
@@ -395,7 +404,7 @@ class GaussianDiffusion(nn.Module):
             # Keep track of prediction of x0
             insert_mask = np.floor(i // include_x0_pred_freq) == torch.arange(num_recorded_x0_pred,
                                                                               dtype=torch.int32,
-                                                                              device="cuda")
+                                                                              device=device)
 
             insert_mask = insert_mask.to(torch.float32).view(1, num_recorded_x0_pred, *([1] * len(shape[1:])))
             x0_preds_   = insert_mask * pred_x0[:, None, ...] + (1. - insert_mask) * x0_preds_
@@ -1107,15 +1116,20 @@ class DDP:
 
         # save_image(grid, os.path.join(self.conf.sample_dir, f'progressive_generated_images_{epoch}.png'))
 
-def save_image_pil(tensor_input, file_path):
-    tensor = tensor_input.clone()*255
+def save_image_pil(tensor, file_path):
+    tensor = tensor.clone()
     print("here1")
-    # tensor = tensor.to("cpu")
+    tensor = tensor.to("cpu")
     print("here1.5")
+    if tensor.min() < 0 or tensor.max() > 1:
+        tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
+        print("here2")
     
+    tensor = tensor * 255
+    print("here3")
     tensor = tensor.byte()
     print("here4")
-    np_image = tensor.cpu().numpy().transpose(1, 2, 0)
+    np_image = tensor.numpy().transpose(1, 2, 0)
     print("here5")
     
     image = Image.fromarray(np_image)
