@@ -1090,6 +1090,32 @@ class DDP:
             # if epoch % self.conf.training.ckpt_freq == 0:
             #     print("saving...")
             #     self.save_checkpoint(epoch, avg_val_loss)
+    def sampling(self, checkpoint_dir, num_samples=50000, batch_size=100):
+        ckpts = torch.load(checkpoint_dir)
+        self.ema.load_state_dict(ckpts["model_state_dict"])
+        
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        num_batches = num_samples // batch_size
+        remaining_samples = num_samples % batch_size
+        total_samples_saved = 0
+        
+        for batch_num in range(num_batches + (1 if remaining_samples > 0 else 0)):
+            current_batch_size = batch_size if batch_num < num_batches else remaining_samples
+            shape = (current_batch_size, 3, self.conf.dataset.resolution, self.conf.dataset.resolution)
+            
+            sample = progressive_samples_fn(self.ema, self.diffusion, shape, device=device)
+            
+            for i in range(current_batch_size):
+                image_tensor = sample['samples'][i].cpu().unsqueeze(0)  
+                file_name = os.path.join(self.conf.sample_dir, f'sample_{total_samples_saved + i}.png')
+                save_image_pil(image_tensor, file_name)
+            
+            total_samples_saved += current_batch_size
+            print(f"Saved {total_samples_saved} / {num_samples} images.")
+
+        print(f"Sampling complete: {total_samples_saved} images saved in {self.conf.sample_dir}")
+
+
 
     def save_checkpoint(self, epoch, val_loss):
         checkpoint_dir = os.path.join(self.conf.ckpt_dir, f'ddp_{epoch:02d}-{val_loss:.2f}.pt')
@@ -1257,4 +1283,4 @@ denoising_diffusion_model = DDP(conf)
 
 
 denoising_diffusion_model.setup()
-denoising_diffusion_model.train()
+denoising_diffusion_model.sampling()
