@@ -1099,21 +1099,22 @@ class DDP:
         num_batches = num_samples // batch_size
         remaining_samples = num_samples % batch_size
         total_samples_saved = 0
-        
+        start = time.time()
         for batch_num in range(num_batches + (1 if remaining_samples > 0 else 0)):
             current_batch_size = batch_size if batch_num < num_batches else remaining_samples
             shape = (current_batch_size, 3, self.conf.dataset.resolution, self.conf.dataset.resolution)
             
             sample = progressive_samples_fn(self.ema, self.diffusion, shape, device=device)
             
-            for i in range(current_batch_size):
-                image_tensor = sample['samples'][i].cpu().unsqueeze(0)  
-                file_name = os.path.join(self.conf.sample_dir, f'sample_{total_samples_saved + i}.png')
-                save_image_pil(image_tensor, file_name)
+            # for i in range(current_batch_size):
+            #     image_tensor = sample['samples'][i].cpu().unsqueeze(0)  
+            #     file_name = os.path.join(self.conf.sample_dir, f'sample_{total_samples_saved + i}.png')
+            #     save_image_pil(image_tensor, file_name)
             
             total_samples_saved += current_batch_size
             print(f"Saved {total_samples_saved} / {num_samples} images.")
-
+        end = time.time()
+        print(f"{end-start:.4f} sec")
         print(f"Sampling complete: {total_samples_saved} images saved in {self.conf.sample_dir}")
 
 
