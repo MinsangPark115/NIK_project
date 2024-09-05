@@ -32,6 +32,7 @@ import pandas as pd
 
 import matplotlib
 import matplotlib.pyplot as plt
+import time
 
 import habana_frameworks.torch.gpu_migration
 import habana_frameworks.torch.core as htcore
