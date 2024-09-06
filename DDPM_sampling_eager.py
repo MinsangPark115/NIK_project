@@ -138,7 +138,7 @@ class GaussianDiffusion(nn.Module):
         """
         super().__init__()
 
-        betas              = betas.type(torch.float64)
+        betas              = betas.type(torch.float64).to("hpu")
         timesteps          = betas.shape[0]
         self.num_timesteps = int(timesteps)
 
@@ -149,7 +149,7 @@ class GaussianDiffusion(nn.Module):
         alphas = 1 - betas
         alphas_cumprod = torch.cumprod(alphas, 0)
         alphas_cumprod_prev = torch.cat(
-            (torch.tensor([1], dtype=torch.float64), alphas_cumprod[:-1]), 0
+            (torch.tensor([1], dtype=torch.float64).to("hpu"), alphas_cumprod[:-1]), 0
         )
         posterior_variance = betas * (1 - alphas_cumprod_prev) / (1 - alphas_cumprod)
 
@@ -1098,6 +1098,7 @@ class DDP:
         self.ema.load_state_dict(ckpts["model_state_dict"])
         
         device = 'hpu' #if torch.cuda.is_available() else 'cpu'
+        self.ema.to(device)
         num_batches = num_samples // batch_size
         remaining_samples = num_samples % batch_size
         total_samples_saved = 0
