@@ -3,11 +3,11 @@ import os
 
 # if os.getenv('DEBUG', '0') == '1':
 os.environ['PT_HPU_LAZY_MODE'] = '0'
-os.environ['LOG_LEVEL_PT_FALLBACK'] = '1'
-os.environ['PT_HPU_ENABLE_REFINE_DYNAMIC_SHAPES'] = '1'
-os.environ['LOG_LEVEL_ALL'] = '3'
-os.environ['ENABLE_CONSOLE'] = 'true'
-os.environ['GPU_MIGRATION_LOG_LEVEL'] = '3'
+# os.environ['LOG_LEVEL_PT_FALLBACK'] = '1'
+# os.environ['PT_HPU_ENABLE_REFINE_DYNAMIC_SHAPES'] = '1'
+# os.environ['LOG_LEVEL_ALL'] = '3'
+# os.environ['ENABLE_CONSOLE'] = 'true'
+# os.environ['GPU_MIGRATION_LOG_LEVEL'] = '3'
 
 import json
 import argparse
@@ -1109,10 +1109,10 @@ class DDP:
             
             sample = progressive_samples_fn(self.ema, self.diffusion, shape, device=device)
             
-            for i in range(current_batch_size):
-                image_tensor = sample['samples'][i].cpu()
-                file_name = os.path.join(self.conf.sample_dir, f'sample_{total_samples_saved + i}.png')
-                save_image_pil(image_tensor, file_name)
+            # for i in range(current_batch_size):
+            #     image_tensor = sample['samples'][i].cpu()
+            #     file_name = os.path.join(self.conf.sample_dir, f'sample_{total_samples_saved + i}.png')
+            #     save_image_pil(image_tensor, file_name)
             
             total_samples_saved += current_batch_size
             print(f"Saved {total_samples_saved} / {num_samples} images.")
